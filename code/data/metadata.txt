@@ -1,0 +1,27 @@
+{
+    "app_id": "tempsens71263",
+    "dev_id": "huehnerstall71263",
+    "hardware_serial": "001DA65947975DD3",
+    "port": 1,
+    "counter": 10,
+    "payload_raw": "B4cA",
+    "metadata": {
+        "time": "2021-02-11T16:07:20.274222765Z",
+        "frequency": 867.1,
+        "modulation": "LORA",
+        "data_rate": "SF7BW125",
+        "airtime": 51456000,
+        "coding_rate": "4/5",
+        "gateways": [
+            {
+                "gtw_id": "eui-7276ff000b031d77",
+                "timestamp": 340687931,
+                "time": "",
+                "channel": 0,
+                "rssi": -122,
+                "snr": -2.2,
+                "rf_chain": 0
+            }
+        ]
+    }
+}
