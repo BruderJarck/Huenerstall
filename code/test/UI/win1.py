@@ -9,7 +9,13 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import paho.mqtt.client as mqtt
+import json
+import base64
 
+APPEUI = '70B3D57ED001A086'
+APPID = 'tempsens71263'
+PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 
 class Ui_MainWindow(object):
     def __init__(self):
@@ -75,6 +81,27 @@ class Ui_MainWindow(object):
         self.counter += 10
         self.lcdNumber.display(str(self.counter))
 
+def on_connect(client, userdata, flags, rc):
+
+    client.subscribe('+/devices/+/up'.format(APPEUI))
+    ui.label.setText("connected")
+    print("connected")
+
+
+def on_message(client, userdata, msg):
+
+    j_msg = json.loads(msg.payload.decode('utf-8'))
+    payload = base64.b64decode(j_msg['payload_raw'])
+
+    # print(j_msg)
+    a = [x for x in payload]
+    ui.label.setText(f"{a}")
+    print(a)
+
+
+
+
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
@@ -82,4 +109,12 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
+    # set paho.mqtt callback
+    ttn_client = mqtt.Client()
+    ttn_client.on_connect = on_connect
+    ttn_client.on_message = on_message
+    ttn_client.username_pw_set(APPID, PSW)
+    ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
+    ttn_client.loop_start()
+
     sys.exit(app.exec_())
