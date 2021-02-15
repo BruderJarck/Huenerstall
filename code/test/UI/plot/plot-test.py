@@ -70,9 +70,6 @@ class Ui_Form(object):
             self.lcdNumber.display(str(round(self.voltage[-1],2)))
             self.counter += 1
 
-    # def plot(self, hour, voltage):
-
-
 
 if __name__ == "__main__":
     import sys
