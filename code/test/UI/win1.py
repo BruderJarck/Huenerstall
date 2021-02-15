@@ -81,6 +81,11 @@ class Ui_MainWindow(object):
         self.counter += 10
         self.lcdNumber.display(str(self.counter))
 
+
+def map(x, in_min, in_max, out_min, out_max):
+    return int((x-in_min) * (out_max-out_min) / (in_max-in_min) + out_min)
+
+
 def on_connect(client, userdata, flags, rc):
 
     client.subscribe('+/devices/+/up'.format(APPEUI))
@@ -94,12 +99,10 @@ def on_message(client, userdata, msg):
     payload = base64.b64decode(j_msg['payload_raw'])
 
     # print(j_msg)
-    a = [x for x in payload]
-    ui.label.setText(f"{a}")
-    print(a)
+    ui.label.setText(f" minute: {payload[0]}\n butState: {payload[2]}")
+    ui.lcdNumber.display(str(map(payload[1], 0, 255, 1100, 1400)/100))
 
-
-
+    print(f"minute: {payload[0]}\n batvoltage: {map(payload[1], 0, 255, 1100, 1400)/100}V\nbutState: {payload[2]}")
 
 
 if __name__ == "__main__":
