@@ -1,0 +1,6 @@
+http://www.solartopo.com/tageslaenge-jahresverlauf.htm
+
+unterewiese: 1.1-15.6.: +1,83 min/tag
+             15.6-31.12.: -1,83 min/tag
+
+obereWiese: ähnlich genug für gleiche werte

@@ -6,7 +6,7 @@ DS3231 rtc;
 void setup () {
   Wire.begin();
   rtc.begin();
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
 
