@@ -24,8 +24,8 @@ bool debug = true;
 int m11 = 6;
 int m12 = 7;
 int endpin = 5;//12;
-int togglepin = 2;//A0;
-int fitpin = 3;//A1;
+int togglepin = 3;//A0;
+int fitpin = 2;//A1;
 int zaunpin = 4;//;A2;
 int relaispin = A3;
 const int alarmPin = 2;
@@ -42,6 +42,7 @@ bool zaunstate = false;
 bool Up = false;
 bool Down = false;
 bool _update = false;
+bool open_close = false;
 
 RTC_DS3231 rtc;
 
@@ -125,6 +126,8 @@ void enterSleep() {
   noInterrupts();                       // Disable interrupts
   attachInterrupt(digitalPinToInterrupt(alarmPin), on_alarm_up, LOW);
   attachInterrupt(digitalPinToInterrupt(alarmPin), on_alarm_down, LOW);
+  attachInterrupt(digitalPinToInterrupt(togglepin), on_open_close, FALLING);
+
 
   Serial.println("Going to sleep!");    // Print message to serial monitor
   Serial.flush();                       // Ensure all characters are sent to the serial monitor
@@ -154,6 +157,13 @@ void on_alarm_down() {
   Down = true;
   _update = true;
 }
+void on_open_close() {
+  sleep.disable();
+  detachInterrupt(digitalPinToInterrupt(alarmPin));
+  open_close = true;
+
+}
+
 
 //--------------------------------------mainloop-------------------------------------------------
 
@@ -187,7 +197,7 @@ void loop () {
     */
   }
 
-  else if (togglepin == HIGH) {
+  else if (open_close == true) {
     if (doorstate == false) {
       up();
     }
