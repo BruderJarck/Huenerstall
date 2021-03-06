@@ -170,7 +170,7 @@ void loop () {
   Serial.println(now.second());
 
   rtc.setAlarm1(DateTime(2021, 3, 06, 22, 52, 0), DS3231_A1_Second);
-  rtc.setAlarm2(DateTime(2021, 3, 06, 22, 43, 30), DS3231_A2_Minute);
+  rtc.setAlarm2(DateTime(2021, 3, 06, 22, 45, 30), DS3231_A2_Minute);
 
   enterSleep();
 
