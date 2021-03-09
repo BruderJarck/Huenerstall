@@ -1,45 +1,11 @@
-/*******************************************************************************
-   Copyright (c) 2015 Thomas Telkamp and Matthijs Kooijman
-
-   Permission is hereby granted, free of charge, to anyone
-   obtaining a copy of this document and accompanying files,
-   to do whatever they want with them without any restriction,
-   including, but not limited to, copying, modification and redistribution.
-   NO WARRANTY OF ANY KIND IS PROVIDED.
-
-   This example sends a valid LoRaWAN packet with payload "Hello,
-   world!", using frequency and encryption settings matching those of
-   the (early prototype version of) The Things Network.
-
-   Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in g1,
-    0.1% in g2).
-
-   Change DEVADDR to a unique address!
-   See http://thethingsnetwork.org/wiki/AddressSpace
-
-   Do not forget to define the radio type correctly in config.h.
-
- *******************************************************************************/
-
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
 #include <Wire.h>
 #include "RTClib.h"
 
-
-// LoRaWAN NwkSKey, network session key
-// This is the default Semtech key, which is used by the prototype TTN
-// network initially.
 static const PROGMEM u1_t NWKSKEY[] = { 0xBA, 0xC2, 0xD6, 0x4E, 0xDE, 0x38, 0x82, 0x06, 0xB6, 0xC7, 0x92, 0x59, 0x21, 0x4A, 0x30, 0xF0 };
-
-// LoRaWAN AppSKey, application session key
-// This is the default Semtech key, which is used by the prototype TTN
-// network initially.
 static const u1_t PROGMEM APPSKEY[] = { 0xA2, 0xC1, 0x76, 0xD1, 0xAE, 0x25, 0xF9, 0xE0, 0x22, 0x99, 0xC0, 0xEF, 0xC0, 0x01, 0x08, 0x9E };
-
-// LoRaWAN end-device address (DevAddr)
-// See http://thethingsnetwork.org/wiki/AddressSpace
 static const u4_t DEVADDR = 0x26011FDD; // <-- Change this address for every node!
 
 // These callbacks are only used in over-the-air activation, so they are
@@ -50,14 +16,13 @@ void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
 int statepin = 3;
-bool send_btn;
-
 uint8_t measurement[3];
 static osjob_t sendjob;
-
+/*
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 0;
+const unsigned TX_INTERVAL = 30;
+*/
 
 // Pin mapping
 const lmic_pinmap lmic_pins = {
@@ -66,6 +31,18 @@ const lmic_pinmap lmic_pins = {
   .rst = 9,
   .dio = {2, 6, 7},
 };
+void setup(){
+  Serial.begin(9600);
+  Wire.begin(5);
+  Wire.onReceive(receiveEvent);
+}
+
+void receiveEvent(int howMany){
+  while(Wire.available())
+  {
+    Serial.println(Wire.read());
+  }
+}
 
 void onEvent (ev_t ev) {
   Serial.print(os_getTime());
@@ -133,7 +110,7 @@ void onEvent (ev_t ev) {
 }
 
 void do_send(osjob_t* j) {
-
+  
   //DateTime now = rtc.now();
 
   int _minutes = 57;
@@ -211,13 +188,9 @@ void setup() {
   LMIC_setDrTxpow(DR_SF7, 14);
 
   // Start job
-  pinMode(A0, INPUT_PULLUP);
+  do_send(&sendjob);
 }
 
 void loop() {
-
-  do_send(&sendjob);
-  delay(5000);
-
-  //os_runloop_once();
+  os_runloop_once();
 }
