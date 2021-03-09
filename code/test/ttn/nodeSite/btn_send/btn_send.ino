@@ -50,12 +50,14 @@ void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
 int statepin = 3;
+bool send_btn;
+
 uint8_t measurement[3];
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 30;
+//const unsigned TX_INTERVAL = 30;
 
 // Pin mapping
 const lmic_pinmap lmic_pins = {
@@ -131,7 +133,7 @@ void onEvent (ev_t ev) {
 }
 
 void do_send(osjob_t* j) {
-  
+
   //DateTime now = rtc.now();
 
   int _minutes = 57;
@@ -209,9 +211,13 @@ void setup() {
   LMIC_setDrTxpow(DR_SF7, 14);
 
   // Start job
-  do_send(&sendjob);
+  pinMode(A0, INPUT_PULLUP);
 }
 
 void loop() {
-  os_runloop_once();
+
+  do_send(&sendjob);
+  delay(5000);
+
+  //os_runloop_once();
 }
