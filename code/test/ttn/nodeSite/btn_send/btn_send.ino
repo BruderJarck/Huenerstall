@@ -55,10 +55,6 @@ bool send_btn;
 uint8_t measurement[3];
 static osjob_t sendjob;
 
-// Schedule TX every this many seconds (might become longer due to duty
-// cycle limitations).
-const unsigned TX_INTERVAL = 0;
-
 // Pin mapping
 const lmic_pinmap lmic_pins = {
   .nss = 10,
@@ -108,7 +104,7 @@ void onEvent (ev_t ev) {
         Serial.println();
       }
       // Schedule next transmission
-      os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
+      //os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
       break;
     case EV_LOST_TSYNC:
       Serial.println(F("EV_LOST_TSYNC"));
@@ -145,7 +141,6 @@ void do_send(osjob_t* j) {
   if (LMIC.opmode & OP_TXRXPEND) {
     Serial.println(F("OP_TXRXPEND, not sending"));
   } else {
-
     LMIC_setTxData2(1, (uint8_t*) measurement, sizeof(measurement), 0);
     Serial.println(F("Packet queued"));
   }
@@ -211,13 +206,20 @@ void setup() {
   LMIC_setDrTxpow(DR_SF7, 14);
 
   // Start job
+  do_send(&sendjob);
+
   pinMode(A0, INPUT_PULLUP);
 }
 
 void loop() {
 
-  do_send(&sendjob);
-  delay(5000);
+  send_btn = !digitalRead(A0);
+  os_runloop_once();
 
-  //os_runloop_once();
+  //Serial.print(send_btn);
+  if (send_btn  == HIGH) {
+    Serial.println("sending");
+    delay(200);
+    os_setCallback(&sendjob, do_send);
+  }
 }

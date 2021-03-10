@@ -17,6 +17,4 @@ void loop () {
   DateTime now = rtc.now();
   Serial.print(now.second(), DEC);
   Serial.println();
-  
- 
 }

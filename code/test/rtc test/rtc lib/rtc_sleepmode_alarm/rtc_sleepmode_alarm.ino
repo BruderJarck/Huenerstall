@@ -76,7 +76,7 @@ void loop () {
   // Get current time and set alarm to a time to wake
   DateTime now = rtc.now();  // Get current time
   Serial.println(now.minute());
-  rtc.setAlarm1(DateTime(2021, 3, 06, 21, 8, 0), DS3231_A1_Second); // Or can be set explicity
+  rtc.setAlarm1(DateTime(2021, 3, 10, 22, 31, 0), DS3231_A1_Second); // Or can be set explicity
 
   enterSleep();  // Go to sleep
 }

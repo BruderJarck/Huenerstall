@@ -14,7 +14,7 @@ airtime = 0
 current_time = now.strftime("%H:%M:%S")
 user = 'huestajarck@gmail.com'
 app_password = 'xnjmzfzrspcvcevp'
-to = ['huestajarck@gmail.com']  # , 'ajaygaly@gmail.com', 'maurice.jarck@gmx.de']
+to = ['huestajarck@gmail.com']#, 'diana.jarck@gmx.de', 'andreas.jarck@gmx.de']  # , 'ajaygaly@gmail.com', 'maurice.jarck@gmx.de']
 
 
 def map(x, in_min, in_max, out_min, out_max):
@@ -34,19 +34,21 @@ def on_message(client, userdata, msg):
 
     print('---'*10)
     print(j_msg)
-    print(payload[0], map(payload[1], 0, 255, 1100, 1400), payload[2])
+    print(payload[0], map(payload[1], 0, 255, 110, 140), )
     print('---'*10)
 
     subject = 'data retrieve test'
-    content = [f"minute: {payload[0]}\n batvoltage: {map(payload[1], 0, 255, 1100, 1400)/100}V\nbutState: {payload[2]}"]
+    content = [f"Hallo,\ndas hier ist eine der ersten Narichten die von meinen Hühnerstall-Prototy-Contollern automatisch, über lora geschickt wurden.\n "
+               f"Jetzt muss das alles hier 'nur' noch eingebaut werden xD.\nIm Anhang ist noch eine Textdatei mit Informatioen zu der letzten Sendung, die wird immer standartmäßig dabei sein.\n\n"
+               f"Türstatus: {payload[0]} (1=offen, 0=zu(wird noch in txt gändert, is aber schon spät))\n batvoltage: {map(payload[1], 0, 255, 1100, 1400)/100}V (das ist noch ein dummy wert)\n\nlg\n "
+               f"Euer Maurice"]
 
-    with open("../../../data/metadata.txt", "w") as txt:
+    with open("metadata.txt", "w") as txt:
         txt.write(json.dumps(j_msg, indent=4))
 
     with yagmail.SMTP(user, app_password) as yag:
-        yag.send(to, subject, content, attachments=r"metadata.txt")
+        yag.send(to, subject, content, attachments="metadata.txt")
         print('Sent email successfully')
-
 
 # set paho.mqtt callback
 ttn_client = mqtt.Client()
