@@ -34,14 +34,13 @@ def on_message(client, userdata, msg):
 
     print('---'*10)
     print(j_msg)
-    print(payload[0], map(payload[1], 0, 255, 110, 140), )
+    [print(x) for x in payload]
     print('---'*10)
 
     subject = 'data retrieve test'
-    content = [f"Hallo,\ndas hier ist eine der ersten Narichten die von meinen Hühnerstall-Prototy-Contollern automatisch, über lora geschickt wurden.\n "
-               f"Jetzt muss das alles hier 'nur' noch eingebaut werden xD.\nIm Anhang ist noch eine Textdatei mit Informatioen zu der letzten Sendung, die wird immer standartmäßig dabei sein.\n\n"
-               f"Türstatus: {payload[0]} (1=offen, 0=zu(wird noch in txt gändert, is aber schon spät))\n batvoltage: {map(payload[1], 0, 255, 1100, 1400)/100}V (das ist noch ein dummy wert)\n\nlg\n "
-               f"Euer Maurice"]
+    content = []
+    for x in payload:
+        content.append(f"\n {x}")
 
     with open("metadata.txt", "w") as txt:
         txt.write(json.dumps(j_msg, indent=4))

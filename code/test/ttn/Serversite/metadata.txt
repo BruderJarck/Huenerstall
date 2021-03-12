@@ -3,11 +3,11 @@
     "dev_id": "huehnerstall71263",
     "hardware_serial": "001DA65947975DD3",
     "port": 1,
-    "counter": 22,
-    "payload_raw": "AX0=",
+    "counter": 2,
+    "payload_raw": "AHI=",
     "metadata": {
-        "time": "2021-03-10T22:40:52.916325994Z",
-        "frequency": 867.7,
+        "time": "2021-03-12T20:33:18.643661586Z",
+        "frequency": 868.1,
         "modulation": "LORA",
         "data_rate": "SF7BW125",
         "airtime": 46336000,
@@ -15,11 +15,11 @@
         "gateways": [
             {
                 "gtw_id": "eui-7276ff000b031d77",
-                "timestamp": 2701093699,
+                "timestamp": 343358812,
                 "time": "",
-                "channel": 3,
-                "rssi": -120,
-                "snr": 0,
+                "channel": 5,
+                "rssi": -118,
+                "snr": 2,
                 "rf_chain": 0
             }
         ]
