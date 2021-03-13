@@ -1,4 +1,5 @@
 
+
 from flask import Flask, render_template
 import datetime
 import paho.mqtt.client as mqtt
@@ -10,7 +11,7 @@ APPID = 'tempsens71263'
 PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 
 app = Flask(__name__)
-payload = ["none received yet", "none received yet"]
+payload = ["none received yet", 0]
 j_msg = {"metadata": {"time": "none received yet"}}
 
 @app.route("/")
@@ -53,4 +54,4 @@ except KeyboardInterrupt:
     ttn_client.disconnect()
 
 if __name__ == "__main__":
-    app.run(host='192.168.2.111', port=80, debug=True)
+    app.run(host='192.168.2.110', port=81, debug=True)
