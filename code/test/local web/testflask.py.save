@@ -1,5 +1,4 @@
 
-
 from flask import Flask, render_template
 import datetime
 import paho.mqtt.client as mqtt
@@ -11,7 +10,7 @@ APPID = 'tempsens71263'
 PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 
 app = Flask(__name__)
-payload = ["none received yet", 0]
+payload = ["", "0"]
 j_msg = {"metadata": {"time": "none received yet"}}
 
 @app.route("/")
@@ -35,7 +34,11 @@ def on_message(client, userdata, msg):
     j_msg = json.loads(msg.payload.decode('utf-8'))
     payload = base64.b64decode(j_msg['payload_raw'])
 
-   
+    print('---'*10)
+    print(j_msg)
+    [print(x) for x in payload]
+    print('---'*10)
+
 # set paho.mqtt callback
 ttn_client = mqtt.Client()
 ttn_client.on_connect = on_connect
