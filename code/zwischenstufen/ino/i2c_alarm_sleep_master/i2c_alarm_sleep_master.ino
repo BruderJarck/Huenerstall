@@ -12,11 +12,13 @@
 #include "RTClib.h"
 #include <avr/sleep.h>
 
-const int alarm_pin = 2;
+const int wake_pin = 2;
 const int wake_slave_pin = 4;
 const int voltage_pin = A1;
 const int door_pin = 5;
+const int send_bt_pin = 3;
 
+bool send_bt;
 bool door_state;
 bool _send = false;
 
@@ -24,13 +26,18 @@ int voltage;
 RTC_DS3231 rtc;
 
 void setup () {
-  Serial.begin(9600); // Start serial port for monitoring
+  Serial.begin(9600); 
   Wire.begin();
 
   pinMode(voltage_pin, INPUT);
-  pinMode(alarm_pin, INPUT_PULLUP); // Set alarm pin as pullup
+  pinMode(wake_pin, INPUT_PULLUP);
   pinMode(wake_slave_pin, OUTPUT);
   pinMode(door_pin, INPUT_PULLUP);
+  pinMode(13, OUTPUT);
+ // pinMode(send_bt_pin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(send_bt_pin), on_alarm, RISING);
+
+
 
   digitalWrite(wake_slave_pin, LOW);
 
@@ -57,7 +64,7 @@ void enterSleep() {
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   noInterrupts();
-  attachInterrupt(digitalPinToInterrupt(alarm_pin), on_alarm, LOW);
+  attachInterrupt(digitalPinToInterrupt(wake_pin), on_alarm, LOW);
 
   Serial.println("Going to sleep!");
   Serial.flush();                       // Ensure all characters are sent to the serial monitor
@@ -82,7 +89,7 @@ void enterSleep() {
 
 void on_alarm() {
   sleep_disable(); // Disable sleep mode
-  detachInterrupt(digitalPinToInterrupt(alarm_pin)); // Detach the interrupt to stop it firing
+  detachInterrupt(digitalPinToInterrupt(wake_pin)); // Detach the interrupt to stop it firing
   _send = true;
 }
 
@@ -109,8 +116,8 @@ void do_send() {
 void loop () {
 
   DateTime now = rtc.now();
-  rtc.setAlarm1(DateTime(2021, 3, 06, 21, 8, 30), DS3231_A1_Minute);
-  rtc.setAlarm2(DateTime(2021, 3, 06, 21, 9, 0), DS3231_A2_Minute);
+  rtc.setAlarm1(DateTime(2021, 3, 06, 21, 8, 30), DS3231_A1_Second);
+  rtc.setAlarm2(DateTime(2021, 3, 06, 21, 36, 0), DS3231_A2_Minute);
 
 
   if (_send == true) {

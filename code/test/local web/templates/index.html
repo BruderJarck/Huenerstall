@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-   <head>
-      <title>{{ title }}</title>
-      <link rel="stylesheet" href="../static/style.css/">
-      <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-      <link rel="OpenHennery-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-   </head>
-   <body>
-      <h1>'OpenHennery webinterface'</h1>
-      <h2>Payload received at {{ time_received }}</h2>
-      <h2>doorstate {{ door_state }}</h2>
-      <h2>battery voltage {{ bat_voltage }}V</h2>
-   </body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+      <h1 style="font-size:3vw;">OpenHennery webinterface</h1>
+      <h2 style="font-size:3vw;">Payload received at {{ time_received }}</h2>
+      <h2 style="font-size:3vw;">doorstate {{ door_state }}</h2>
+      <h2 style="font-size:3vw;">battery voltage {{ bat_voltage }}V</h2>
+
+      <canvas id="myChart"  height="100"></canvas>
+
+{% endblock %}
+
 
