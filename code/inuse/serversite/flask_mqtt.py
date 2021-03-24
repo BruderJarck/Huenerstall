@@ -1,4 +1,3 @@
-import csv
 from datetime import datetime
 from flask import Flask, render_template, Response
 import paho.mqtt.client as mqtt
@@ -15,10 +14,11 @@ PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 app = Flask(__name__)
 Mobility(app)
 
-payload = ["none received yet", 0, 0]
+payload = ["none received yet", 0]
 j_msg = {"metadata": {"time": 100}}
 labels = []
 values = []
+
 
 @app.route('/')
 @mobile_template('{mobile/}index.html')
@@ -27,8 +27,7 @@ def index(template):
         'title': 'OpenHennery webinterface',
         'time_received': j_msg["metadata"]["time"],
         'door_state': str(payload[0]),
-        'zaun_state': str(payload[1]),
-        'bat_voltage': str(int(payload[2]) / 10),
+        'bat_voltage': str(int(payload[1])/10),
         'labels': labels,
         'values': values,
     }
@@ -36,13 +35,7 @@ def index(template):
 
 
 def on_connect(client, userdata, flags, rc):
-    global payload, j_msg, values, labels
     client.subscribe('+/devices/+/up'.format(APPEUI))
-    with open("data.csv", "r") as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            labels += [row["time"]]
-            values += [row["voltage"]]
 
 
 def on_message(client, userdata, msg):
@@ -50,14 +43,8 @@ def on_message(client, userdata, msg):
     j_msg = json.loads(msg.payload.decode('utf-8'))
     payload = base64.b64decode(j_msg['payload_raw'])
     labels += [str(datetime.now())]
-    values += [int(payload[2])/10]
+    values += [int(payload[1])/10]
 
-    with open("data.csv", "w") as file:
-        fieldnames = ["time", "voltage"]
-        writer = csv.DictWriter(file, fieldnames)
-        writer.writeheader()
-        for index in range(len(labels)):
-            writer.writerow({"time": labels[index], "voltage": values[index]})
 
 ttn_client = mqtt.Client()
 ttn_client.on_connect = on_connect
