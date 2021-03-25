@@ -1,5 +1,5 @@
-int m11 = 2;
-int m12 = 3;
+int m11 = 6;
+int m12 = 7;
 
 void setup() {
   pinMode(m11, OUTPUT);
