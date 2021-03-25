@@ -203,7 +203,7 @@ void loop () {
     }
     else {
       Serial.println("Alarm");
-      if ((now.hour() >= uptimeH) and (now.hour() < downtimeH) and (door_state == false)) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
+      if ((now.hour() >= uptimeH) and (now.hour() < downtimeH)) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
         up();
         zaun(true);
       }
