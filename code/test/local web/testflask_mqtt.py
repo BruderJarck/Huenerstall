@@ -19,6 +19,7 @@ payload = ["none received yet", 0, 0]
 j_msg = {"metadata": {"time": 100}}
 labels = []
 values = []
+fieldnames = ["time", "voltage"]
 
 @app.route('/')
 @mobile_template('{mobile/}index.html')
@@ -53,23 +54,19 @@ def on_message(client, userdata, msg):
     values += [int(payload[2])/10]
 
     with open("data.csv", "w") as file:
-        fieldnames = ["time", "voltage"]
         writer = csv.DictWriter(file, fieldnames)
-        writer.writeheader()
-        for index in range(len(labels)):
-            writer.writerow({"time": labels[index], "voltage": values[index]})
+        writer.writerow({"time": labels[-1], "voltage": values[-1]})
 
 ttn_client = mqtt.Client()
 ttn_client.on_connect = on_connect
 ttn_client.on_message = on_message
 ttn_client.username_pw_set(APPID, PSW)
 ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
+ttn_client.loop_start()
 
-try:
-    ttn_client.loop_start()
-except KeyboardInterrupt:
-    print('disconnect')
-    ttn_client.disconnect()
+if __name__ == '__main__':
+    with open("data.csv", "w") as file:
+        writer = csv.DictWriter(file, fieldnames)
+        writer.writeheader()
 
-# if __name__ == '__main__':
-#    app.run(host='192.168.2.111', port=80, debug=True)
+    app.run(host='192.168.2.111', port=80, debug=True)
