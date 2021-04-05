@@ -21,6 +21,9 @@ labels = []
 values = []
 fieldnames = ["time", "voltage"]
 
+logfile = "./log.txt"
+datafile = "./data.csv"
+
 
 @app.route('/')
 @mobile_template('{mobile/}index.html')
@@ -40,35 +43,65 @@ def index(template):
 def on_connect(client, userdata, flags, rc):
     global payload, j_msg, values, labels
     client.subscribe('+/devices/+/up'.format(APPEUI))
+
+    append_to_file(logfile, f"[subscribed] \t{datetime.now()}")
+
+
     with open("data.csv", "r") as file:
         reader = csv.DictReader(file)
         for row in reader:
             labels += [row["time"]]
             values += [row["voltage"]]
 
+        append_to_file(logfile, f"[red data] \t{labels}\n{values}\nlen: {len(labels)}/{len(values)}")
+
+    if len(labels) > 14 or len(values) > 14:
         while len(labels) > 14:
             labels.pop(0)
 
         while len(values) > 14:
             values.pop(0)
 
+        append_to_file(logfile, f"[shortened] \tlen:labels/values: {len(labels)}/{len(values)}")
+
 
 def on_message(client, userdata, msg):
     global payload, j_msg, values, labels
     j_msg = json.loads(msg.payload.decode('utf-8'))
     payload = base64.b64decode(j_msg['payload_raw'])
+
+    append_to_file(logfile, f"[message received] \t{[f'{x}' for x in payload]}, {datetime.now()}")
+
     labels += [str(datetime.now())]
     values += [int(payload[2]) / 10]
 
+    append_to_file(logfile, f"[extended lists] \t{[f'{x}' for x in payload]}")
+
+    with open("data.csv", "w") as file:
+        file.truncate()
+
     with open("data.csv", "w") as file:
         writer = csv.DictWriter(file, fieldnames)
-        writer.writerow({"time": labels[-1], "voltage": values[-1]})
+        writer.writeheader()
+        for row in range(len(labels)):
+            writer.writerow({"time": [labels[row]], "voltage": values[row]})
 
-    while len(labels) > 14:
-        labels.pop(0)
+    append_to_file(logfile, f"[appended data] \tlen:labels/values: {len(labels)}/{len(values)}")
 
-    while len(values) > 14:
-        values.pop(0)
+    if len(labels) > 14 or len(values) > 14:
+        while len(labels) > 14:
+            labels.pop(0)
+
+        while len(values) > 14:
+            values.pop(0)
+
+        append_to_file(logfile, f"[shortened] \tlen:labels/values: {len(labels)}/{len(values)}")
+
+
+def append_to_file(file, message):
+    with open(file, "r+") as file:
+        file.readlines()
+        file.write("\n" + message)
 
 
 ttn_client = mqtt.Client()
@@ -78,9 +111,5 @@ ttn_client.username_pw_set(APPID, PSW)
 ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
 ttn_client.loop_start()
 
-if __name__ == '__main__':
-    with open("data.csv", "w") as file:
-        writer = csv.DictWriter(file, fieldnames)
-        writer.writeheader()
-
-    # app.run(host='192.168.2.111', port=80, debug=True)
+# if __name__ == '__main__':
+#     app.run(host='192.168.2.111', port=80, debug=True)
