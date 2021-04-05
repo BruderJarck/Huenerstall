@@ -21,6 +21,7 @@ labels = []
 values = []
 fieldnames = ["time", "voltage"]
 
+
 @app.route('/')
 @mobile_template('{mobile/}index.html')
 def index(template):
@@ -45,17 +46,30 @@ def on_connect(client, userdata, flags, rc):
             labels += [row["time"]]
             values += [row["voltage"]]
 
+        while len(labels) > 14:
+            labels.pop(0)
+
+        while len(values) > 14:
+            values.pop(0)
+
 
 def on_message(client, userdata, msg):
     global payload, j_msg, values, labels
     j_msg = json.loads(msg.payload.decode('utf-8'))
     payload = base64.b64decode(j_msg['payload_raw'])
     labels += [str(datetime.now())]
-    values += [int(payload[2])/10]
+    values += [int(payload[2]) / 10]
 
     with open("data.csv", "w") as file:
         writer = csv.DictWriter(file, fieldnames)
         writer.writerow({"time": labels[-1], "voltage": values[-1]})
+
+    while len(labels) > 14:
+        labels.pop(0)
+
+    while len(values) > 14:
+        values.pop(0)
+
 
 ttn_client = mqtt.Client()
 ttn_client.on_connect = on_connect
@@ -69,4 +83,4 @@ if __name__ == '__main__':
         writer = csv.DictWriter(file, fieldnames)
         writer.writeheader()
 
-    app.run(host='192.168.2.111', port=80, debug=True)
+    # app.run(host='192.168.2.111', port=80, debug=True)
