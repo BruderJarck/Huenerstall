@@ -100,7 +100,7 @@ void setup () {
   // If required set time+
   up();
   down();
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // To compiled time
+  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // To compiled time
 
   rtc.disableAlarm(1);
   rtc.disableAlarm(2);
@@ -196,6 +196,7 @@ void loop () {
 
       }
       else {
+        
         zaun(false);
         Serial.println("set zaunstate false");
 
@@ -203,16 +204,16 @@ void loop () {
     }
     else {
       Serial.println("Alarm");
-      if ((now.hour() >= uptimeH) and (now.hour() < downtimeH) and (door_state == false)) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
+      if ((now.hour() >= uptimeH) and (now.hour() < downtimeH)) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
         up();
         zaun(true);
       }
       else {
-        if (door_state == true) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
+        // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
 
-          down();
-          zaun(false);
-        }
+        down();
+        zaun(false);
+
       }
     }
     do_send();
