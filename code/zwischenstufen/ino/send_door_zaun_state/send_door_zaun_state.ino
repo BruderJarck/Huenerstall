@@ -5,7 +5,7 @@
   SCL -> Arduino Analog (SCL pin)
   VCC -> Arduino 5V
   GND -> Arduino GND
-  SQW -> Arduino D2 (Needs to be an interrupt capable pin)
+  SQW -> Arduino D2 (Needs to be an interrupt capable pin)h
 */
 
 #include <Wire.h>
@@ -196,7 +196,7 @@ void loop () {
 
       }
       else {
-        
+
         zaun(false);
         Serial.println("set zaunstate false");
 
@@ -210,9 +210,14 @@ void loop () {
       }
       else {
         // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
-
-        down();
-        zaun(false);
+        if (door_state == true) {
+          down();
+          zaun(false);
+        }
+        else {
+          up();
+          zaun(false);
+        }
 
       }
     }
