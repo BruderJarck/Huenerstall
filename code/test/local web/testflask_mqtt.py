@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime
-from flask import Flask, render_template, Response
+from flask import Flask, render_template
 import paho.mqtt.client as mqtt
 import json
 import base64
@@ -15,7 +15,7 @@ PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 app = Flask(__name__)
 Mobility(app)
 
-payload = ["none received yet", 0, 0]
+payload = [None, None, None]
 j_msg = {"metadata": {"time": 100}}
 labels = []
 values = []
@@ -28,12 +28,32 @@ datafile = "./data.csv"
 @app.route('/')
 @mobile_template('{mobile/}index.html')
 def index(template):
+
+    if payload[0] == 0:
+        doorstate = "geschlossen"
+    elif payload[0] == 1:
+        doorstate = "offen"
+    else:
+        doorstate = "'unbekannter Status'"
+
+    if payload[1] == 0:
+        zaunstate = "aus"
+    elif payload[1] == 1:
+        zaunstate = "an"
+    else:
+        zaunstate = "'unbekannter Status'"
+
+    if payload[2] is not None:
+        bat_voltage = str(int(payload[2]) / 10)
+    else:
+        bat_voltage = "'unbekannter Status'"
+
     template_data = {
         'title': 'OpenHennery webinterface',
         'time_received': labels[-1],
-        'door_state': str(payload[0]),
-        'zaun_state': str(payload[1]),
-        'bat_voltage': str(int(payload[2]) / 10),
+        'door_state': doorstate,
+        'zaun_state': zaunstate,
+        'bat_voltage': bat_voltage,
         'labels': labels,
         'values': values,
     }
@@ -53,7 +73,7 @@ def on_connect(client, userdata, flags, rc):
             labels += [row["time"]]
             values += [row["voltage"]]
 
-        append_to_file(logfile, f"[red data] \t{labels}\n{values}\nlen: {len(labels)}/{len(values)}")
+        append_to_file(logfile, f"[red data] \t\n{labels}\n{values}\nlen: {len(labels)}/{len(values)}")
 
     if len(labels) > 14 or len(values) > 14:
         while len(labels) > 14:
@@ -111,6 +131,6 @@ ttn_client.username_pw_set(APPID, PSW)
 ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
 ttn_client.loop_start()
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
 #	append_to_file(logfile, f"[started] \t{datetime.now()}"
-#     app.run(host='192.168.2.111', port=80, debug=True)
+    app.run(host='192.168.2.111', port=80, debug=True)
