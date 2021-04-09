@@ -5,7 +5,7 @@
   SCL -> Arduino Analog (SCL pin)
   VCC -> Arduino 5V
   GND -> Arduino GND
-  SQW -> Arduino D2 (Needs to be an interrupt capable pin)
+  SQW -> Arduino D2 (Needs to be an interrupt capable pin)h
 */
 
 #include <Wire.h>
@@ -100,7 +100,7 @@ void setup () {
   // If required set time+
   up();
   down();
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // To compiled time
+  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // To compiled time
 
   rtc.disableAlarm(1);
   rtc.disableAlarm(2);
@@ -196,6 +196,7 @@ void loop () {
 
       }
       else {
+
         zaun(false);
         Serial.println("set zaunstate false");
 
@@ -208,11 +209,16 @@ void loop () {
         zaun(true);
       }
       else {
-        if (door_state == true) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
-
+        // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
+        if (door_state == true) {
           down();
           zaun(false);
         }
+        else {
+          up();
+          zaun(false);
+        }
+
       }
     }
     do_send();

@@ -65,7 +65,7 @@ void setup() {
 
   do_send(&sendjob);
 
-  enter_sleep();
+  //enter_sleep();
 }
 void enter_sleep() {
   sleep_enable();                       // Enabling sleep mode
@@ -145,7 +145,7 @@ void onEvent (ev_t ev) {
       break;
     case EV_TXCOMPLETE:
       Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-      enter_sleep();
+      //enter_sleep();
       if (LMIC.dataLen) {
         // data received in rx slot after tx
         Serial.print(F("Data Received: "));
