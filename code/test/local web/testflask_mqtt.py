@@ -131,6 +131,6 @@ ttn_client.username_pw_set(APPID, PSW)
 ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
 ttn_client.loop_start()
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 #	append_to_file(logfile, f"[started] \t{datetime.now()}"
-    app.run(host='192.168.2.111', port=80, debug=True)
+    # app.run(host='192.168.2.111', port=80, debug=True)
