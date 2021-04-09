@@ -30,7 +30,7 @@ datafile = "./data.csv"
 def index(template):
     template_data = {
         'title': 'OpenHennery webinterface',
-        'time_received': labels[-1],
+        'time_received': values[-1],
         'door_state': str(payload[0]),
         'zaun_state': str(payload[1]),
         'bat_voltage': str(int(payload[2]) / 10),
@@ -84,7 +84,7 @@ def on_message(client, userdata, msg):
         writer = csv.DictWriter(file, fieldnames)
         writer.writeheader()
         for row in range(len(labels)):
-            writer.writerow({"time": labels[row], "voltage": values[row]})
+            writer.writerow({"time": [labels[row]], "voltage": values[row]})
 
     append_to_file(logfile, f"[appended data] \tlen:labels/values: {len(labels)}/{len(values)}")
 
@@ -111,6 +111,5 @@ ttn_client.username_pw_set(APPID, PSW)
 ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
 ttn_client.loop_start()
 
-#if __name__ == '__main__':
-#	append_to_file(logfile, f"[started] \t{datetime.now()}"
+ if __name__ == '__main
 #     app.run(host='192.168.2.111', port=80, debug=True)
