@@ -1,13 +1,3 @@
-/*
-  Connections
-  -----------
-  SDA -> Arduino Analog (SDA pin)
-  SCL -> Arduino Analog (SCL pin)
-  VCC -> Arduino 5V
-  GND -> Arduino GND
-  SQW -> Arduino D2 (Needs to be an interrupt capable pin)h
-*/
-
 #include <Wire.h>
 #include "RTClib.h"
 #include <avr/sleep.h>
@@ -25,14 +15,14 @@ const int m12 = 7;
 
 int uptimeH = 7;   //oclock
 int uptimeM = 0   ;   //minutes
-int downtimeH = 19; //oclock
+int downtimeH = 21; //oclock
 int downtimeM = 0; //minutes
 
 bool send_bt;
 bool door_btn;
 bool zaun_btn;
 bool end_btn ;
-int downtraveltime = 1200; //ms
+int downtraveltime = 1100; //ms
 bool door_state;
 bool zaun_state = false;
 bool interrupt_triggered = false;
@@ -99,9 +89,8 @@ void setup () {
 
   // If required set time+
   up();
-  down();
-  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // To compiled time
-
+  //down();
+  
   rtc.disableAlarm(1);
   rtc.disableAlarm(2);
   rtc.clearAlarm(1);
@@ -112,8 +101,8 @@ void setup () {
   Serial.println("Starting");
 }
 void enterSleep() {
-  sleep_enable();
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  //sleep_enable();
+  //set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   noInterrupts();
   attachInterrupt(digitalPinToInterrupt(wake_pin), on_alarm, LOW);
@@ -122,7 +111,7 @@ void enterSleep() {
   Serial.flush();                       // Ensure all characters are sent to the serial monitor
 
   interrupts();                         // Allow interrupts again
-  sleep_cpu();
+  //sleep_cpu();
 
   /* The program will continue from here when it wakes */
 
@@ -214,11 +203,6 @@ void loop () {
           down();
           zaun(false);
         }
-        else {
-          up();
-          zaun(false);
-        }
-
       }
     }
     do_send();
