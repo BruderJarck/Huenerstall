@@ -153,7 +153,7 @@ void loop () {
   door_btn = !digitalRead(door_btn_pin);
   zaun_btn = !digitalRead(zaun_btn_pin);
   send_btn = !digitalRead(send_bt_pin);
-  
+
   //-------------------------------------------------------------------------------------------------------------- -
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     if (door_state == false) {
@@ -173,12 +173,12 @@ void loop () {
   }
   //-------------------------------------------------------------------------------------------------------------- -
   if (send_btn == HIGH) {
-    delay(400);
     do_send();
+    delay(400);
   }
   //-------------------------------------------------------------------------------------------------------------- -
   if (door_btn == HIGH) {
-
+    delay(400);
     if (door_state == true) {
       Serial.println("door down");
       down();
@@ -191,6 +191,7 @@ void loop () {
       do_send();
 
     }
+    delay(400);
   }
   //-------------------------------------------------------------------------------------------------------------- -
   if (zaun_btn == HIGH) {
@@ -198,15 +199,13 @@ void loop () {
       zaun(true);
       Serial.println("zaun on");
       do_send();
-
-
     }
     else {
       Serial.println("zaun off");
       zaun(false);
       do_send();
-
     }
+    delay(400);
   }
   if (old_month != now.month()) {
     if (now.month() <= 12 and now.month() >= 7) {
