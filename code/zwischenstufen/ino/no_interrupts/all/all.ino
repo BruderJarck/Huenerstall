@@ -13,13 +13,13 @@ const int zaun_relais_pin = A3;
 const int m11 = 6;
 const int m12 = 7;
 
-int uptime_h = 7;   //oclock
-int uptime_m = 0   ;   //minutes
-int downtime_h = 21; //oclock
+int uptime_h;
+int uptime_m = 0;   //minutes
+int downtime_h;
 int downtime_m = 0; //minutes
 int old_month;
 
-bool send_bt;
+bool send_btn;
 bool door_btn;
 bool zaun_btn;
 bool end_btn ;
@@ -91,6 +91,23 @@ void setup () {
   DateTime now = rtc.now();
   old_month = now.month();
 
+  for (int i = 1; i <= 12; i++) {
+    if (i <= 12 and i >= 7) {
+      uptime_h = uptime_h + 0.8;
+      downtime_h = downtime_h - 1.2;
+      if (i = now.month()) {
+        break;
+      }
+    }
+    else {
+      uptime_h = uptime_h - 0.8;
+      downtime_h = downtime_h + 1.2;
+      if (i = now.month()) {
+        break;
+      }
+    }
+
+  }
 }
 
 
@@ -136,6 +153,7 @@ void loop () {
   door_btn = !digitalRead(door_btn_pin);
   zaun_btn = !digitalRead(zaun_btn_pin);
   send_btn = !digitalRead(send_bt_pin);
+  
   //-------------------------------------------------------------------------------------------------------------- -
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     if (door_state == false) {
@@ -154,13 +172,13 @@ void loop () {
     }
   }
   //-------------------------------------------------------------------------------------------------------------- -
-  if(send_btn == HIGH){
+  if (send_btn == HIGH) {
     delay(400);
     do_send();
   }
   //-------------------------------------------------------------------------------------------------------------- -
   if (door_btn == HIGH) {
-    
+
     if (door_state == true) {
       Serial.println("door down");
       down();
