@@ -135,6 +135,7 @@ void loop () {
 
   door_btn = !digitalRead(door_btn_pin);
   zaun_btn = !digitalRead(zaun_btn_pin);
+  send_btn = !digitalRead(send_bt_pin);
   //-------------------------------------------------------------------------------------------------------------- -
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     if (door_state == false) {
@@ -153,7 +154,13 @@ void loop () {
     }
   }
   //-------------------------------------------------------------------------------------------------------------- -
+  if(send_btn == HIGH){
+    delay(400);
+    do_send();
+  }
+  //-------------------------------------------------------------------------------------------------------------- -
   if (door_btn == HIGH) {
+    
     if (door_state == true) {
       Serial.println("door down");
       down();
