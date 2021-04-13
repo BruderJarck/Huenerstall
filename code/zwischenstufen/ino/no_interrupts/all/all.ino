@@ -120,10 +120,10 @@ void do_send() {
   Wire.write(door_state);
   Wire.write(zaun_state);
   Wire.write(voltage);
-  Wire.write(uptime_h);
-  Wire.write(uptime_m);
-  Wire.write(downtime_h);
-  Wire.write(downtime_m);
+  Wire.write(int(uptime_h));
+  Wire.write(int(uptime_m));
+  Wire.write(int(downtime_h));
+  Wire.write(int(downtime_m));
 
   Wire.endTransmission();
 }
@@ -136,7 +136,7 @@ void loop () {
   door_btn = !digitalRead(door_btn_pin);
   zaun_btn = !digitalRead(zaun_btn_pin);
   //-------------------------------------------------------------------------------------------------------------- -
-  if ((now.hour() >= uptime_h) and (now.hour() < downtime_h)) { // wenn die tür zu ist wenn sie laut alarm erst zu gehen soll, könnte man das als indikator für eine fehlfunktion benutzen => error code senden
+  if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     if (door_state == false) {
       up();
       zaun(true);
