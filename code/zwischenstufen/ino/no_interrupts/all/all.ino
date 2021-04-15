@@ -147,8 +147,8 @@ void do_send() {
   Wire.write(int(uptime_m));
   Wire.write(int(downtime_h));
   Wire.write(int(downtime_m));
-
   Wire.endTransmission();
+  
 }
 
 
@@ -156,17 +156,17 @@ void loop () {
 
   DateTime now = rtc.now();
 
-  door_btn = !digitalRead(door_btn_pin);
+  door_btn = !digitalRead(send_bt_pin);
   zaun_btn = !digitalRead(zaun_btn_pin);
-  send_btn = !digitalRead(send_bt_pin);
+  //send_btn = !digitalRead(send_bt_pin);
 
-  //-------------------------------------------------------------------------------------------------------------- -
+  //------------------------------------------------------------------------------------------------------------- -
+  
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     if (door_state == false) {
       up();
       zaun(true);
       do_send();
-
     }
   }
   else {
@@ -177,12 +177,15 @@ void loop () {
 
     }
   }
-  //-------------------------------------------------------------------------------------------------------------- -
+  //---------------------------------------------------------------------------------------------------------------
+  /*
   if (send_btn == HIGH) {
     do_send();
     delay(400);
   }
-  //-------------------------------------------------------------------------------------------------------------- -
+  */
+  //---------------------------------------------------------------------------------------------------------------
+  
   if (door_btn == HIGH) {
     delay(400);
     if (door_state == true) {
