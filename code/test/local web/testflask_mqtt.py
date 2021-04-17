@@ -120,7 +120,7 @@ def on_message(client, userdata, msg):
     append_to_file(logfile, f"[message received] \t{[f'{x}' for x in payload]}, {datetime.now()}")
 
     labels += [str(datetime.now())]
-    values += [int(payload[2]) / 10]
+    values += [int(payload[3]) / 10]
 
     append_to_file(logfile, f"[extended lists] \t{[f'{x}' for x in payload]}")
 
