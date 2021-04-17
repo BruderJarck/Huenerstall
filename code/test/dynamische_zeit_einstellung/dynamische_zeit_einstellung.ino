@@ -15,6 +15,7 @@ void setup() {
       uptime_h = uptime_h - 0.8;
       downtime_h = downtime_h + 1.2;
     }
+
     Serial.print(i);
     Serial.print(" ");
     Serial.print(int(uptime_h));
@@ -24,6 +25,9 @@ void setup() {
     Serial.print(int(downtime_h));
     Serial.print(":");
     Serial.println(int(downtime_m));
+    if(i == 4){
+      break;
+    }
   }
 }
 
