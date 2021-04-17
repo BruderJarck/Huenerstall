@@ -15,7 +15,7 @@ PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 app = Flask(__name__)
 Mobility(app)
 
-payload = [None, None, None]
+payload = [None, None, None, None, None, None, None, ]
 j_msg = {"metadata": {"time": 100}}
 labels = []
 values = []
@@ -28,7 +28,6 @@ datafile = "./data.csv"
 @app.route('/')
 @mobile_template('{mobile/}index.html')
 def index(template):
-
     if payload[0] == 0:
         doorstate = "geschlossen"
     elif payload[0] == 1:
@@ -46,7 +45,27 @@ def index(template):
     if payload[2] is not None:
         bat_voltage = str(int(payload[2]) / 10)
     else:
-        bat_voltage = "'unbekannter Status'"
+        bat_voltage = "'unbekannt'"
+
+    if payload[3] is not None:
+        uptime_h = payload[3]
+    else:
+        uptime_h = "'unbekannt'"
+
+    if payload[4] is not None:
+        uptime_m = payload[4]
+    else:
+        uptime_m = "'unbekannt'"
+
+    if payload[5] is not None:
+        downtime_h = payload[5]
+    else:
+        downtime_h = "'unbekannt'"
+
+    if payload[6] is not None:
+        downtime_m = payload[6]
+    else:
+        downtime_m = "'unbekannt'"
 
     template_data = {
         'title': 'OpenHennery webinterface',
@@ -56,6 +75,10 @@ def index(template):
         'bat_voltage': bat_voltage,
         'labels': labels,
         'values': values,
+        'uptime_h': uptime_h,
+        'uptime_m': uptime_m,
+        'downtime_h': downtime_h,
+        'downtime_m': downtime_m
     }
     return render_template(template, **template_data)
 
@@ -65,7 +88,6 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe('+/devices/+/up'.format(APPEUI))
 
     append_to_file(logfile, f"[subscribed] \t{datetime.now()}")
-
 
     with open("data.csv", "r") as file:
         reader = csv.DictReader(file)
