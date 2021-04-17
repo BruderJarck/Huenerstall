@@ -13,16 +13,17 @@ const int zaun_relais_pin = A3;
 const int m11 = 6;
 const int m12 = 7;
 
-int uptime_h = 10;
-int uptime_m = 0;   //minutes
-int downtime_h = 15;
-int downtime_m = 0; //minutes
+float uptime_h = 12;
+float uptime_m = 0;   //minutes
+float downtime_h = 15;
+float downtime_m = 0; //minutes
 int old_month;
 
 bool send_btn;
 bool door_btn;
 bool zaun_btn;
 bool end_btn ;
+bool door_btn_triggered = false;
 int downtraveltime = 1100; //ms
 bool door_state;
 bool zaun_state = false;
@@ -84,11 +85,9 @@ void setup () {
     Serial.flush();
     abort();
   }
-
-  up();
-  //down();
   Serial.println("Starting");
   DateTime now = rtc.now();
+  
   old_month = now.month();
   for (int i = 0; i <= 12; i++) {
     Serial.println(i);
@@ -114,6 +113,18 @@ void setup () {
   Serial.print(int(downtime_h));
   Serial.print(":");
   Serial.println(int(downtime_m));
+
+  if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
+    up();
+    zaun(true);
+    do_send();
+  }
+  else {
+    up();
+    down();
+    zaun(false);
+    do_send();
+  }
 }
 
 
@@ -147,8 +158,8 @@ void do_send() {
   Wire.write(int(uptime_m));
   Wire.write(int(downtime_h));
   Wire.write(int(downtime_m));
+
   Wire.endTransmission();
-  
 }
 
 
@@ -160,13 +171,15 @@ void loop () {
   zaun_btn = !digitalRead(zaun_btn_pin);
   //send_btn = !digitalRead(send_bt_pin);
 
-  //------------------------------------------------------------------------------------------------------------- -
-  
+  //-------------------------------------------------------------------------------------------------------------- -
+
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     if (door_state == false) {
       up();
       zaun(true);
       do_send();
+      //door_btn_triggered = false;
+
     }
   }
   else {
@@ -174,33 +187,35 @@ void loop () {
       down();
       zaun(false);
       do_send();
+      //door_btn_triggered = false;
 
     }
   }
-  //---------------------------------------------------------------------------------------------------------------
-  /*
-  if (send_btn == HIGH) {
+  //-------------------------------------------------------------------------------------------------------------- -
+  /*if (send_btn == HIGH) {
     do_send();
     delay(400);
-  }
+    }
   */
-  //---------------------------------------------------------------------------------------------------------------
-  
+  //-------------------------------------------------------------------------------------------------------------- -
   if (door_btn == HIGH) {
-    delay(400);
     if (door_state == true) {
       Serial.println("door down");
       down();
       do_send();
+      //door_btn_triggered = false;
 
     }
     else {
       Serial.println("door up");
       up();
       do_send();
+      //door_btn_triggered = true;
 
     }
     delay(400);
+
+
   }
   //-------------------------------------------------------------------------------------------------------------- -
   if (zaun_btn == HIGH) {
