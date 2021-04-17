@@ -15,7 +15,7 @@ PSW = 'ttn-account-v2.6p1nkE0mLVt8YrtlAwJaWZixMQgHmc3jwdBd4ozDulw'
 app = Flask(__name__)
 Mobility(app)
 
-payload = [None, None, None, None, None, None, None, ]
+payload = [None, None, None, None, None, None, None, None]
 j_msg = {"metadata": {"time": 100}}
 labels = []
 values = []
@@ -28,47 +28,52 @@ datafile = "./data.csv"
 @app.route('/')
 @mobile_template('{mobile/}index.html')
 def index(template):
-    if payload[0] == 0:
+    if payload[0] is not None:
+        status_code = payload[0]
+    else:
+        status_code = "'unbekannter Statuscode'"
+    if payload[1] == 0:
         doorstate = "geschlossen"
-    elif payload[0] == 1:
+    elif payload[1] == 1:
         doorstate = "offen"
     else:
         doorstate = "'unbekannter Status'"
 
-    if payload[1] == 0:
+    if payload[2] == 0:
         zaunstate = "aus"
-    elif payload[1] == 1:
+    elif payload[2] == 1:
         zaunstate = "an"
     else:
         zaunstate = "'unbekannter Status'"
 
-    if payload[2] is not None:
-        bat_voltage = str(int(payload[2]) / 10)
+    if payload[3] is not None:
+        bat_voltage = str(int(payload[3]) / 10)
     else:
         bat_voltage = "'unbekannt'"
 
-    if payload[3] is not None:
-        uptime_h = payload[3]
+    if payload[4] is not None:
+        uptime_h = payload[4]
     else:
         uptime_h = "'unbekannt'"
 
-    if payload[4] is not None:
-        uptime_m = payload[4]
+    if payload[5] is not None:
+        uptime_m = payload[5]
     else:
         uptime_m = "'unbekannt'"
 
-    if payload[5] is not None:
-        downtime_h = payload[5]
+    if payload[6] is not None:
+        downtime_h = payload[6]
     else:
         downtime_h = "'unbekannt'"
 
-    if payload[6] is not None:
-        downtime_m = payload[6]
+    if payload[7] is not None:
+        downtime_m = payload[7]
     else:
         downtime_m = "'unbekannt'"
 
     template_data = {
         'title': 'OpenHennery webinterface',
+        'status_code': status_code,
         'time_received': labels[-1],
         'door_state': doorstate,
         'zaun_state': zaunstate,
@@ -154,5 +159,4 @@ ttn_client.connect("eu.thethings.network", 1883, 60)  # MQTT port over TLS
 ttn_client.loop_start()
 
 # if __name__ == '__main__':
-#	append_to_file(logfile, f"[started] \t{datetime.now()}"
-    # app.run(host='192.168.2.111', port=80, debug=True)
+#     app.run(host='192.168.2.111', port=80, debug=True)
