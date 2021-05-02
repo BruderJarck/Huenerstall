@@ -34,55 +34,54 @@ bool door_timed_out;
 unsigned long door_btn_triggered_time = 0;
 unsigned long up_started_time = 0;
 
+char log_message[20];
+String log_message_s;
+String log_time;
 int voltage;
 RTC_DS3231 rtc;
 
 void _stop() {
+  do_send_log("stop");
   digitalWrite(m11, LOW);
   digitalWrite(m12, LOW);
 }
 
 void up() {
+  do_send_log("up started");
   up_started_time = millis();
   while (true) {
     if ( door_timed_out == false) {
       end_btn = !digitalRead(end_btn_pin);
       digitalWrite(m11, HIGH);
       digitalWrite(m12, LOW);
-      Serial.println("up started");
 
       if (end_btn == HIGH) {
         _stop();
         door_state = true;
-        Serial.println("up ended");
         break;
       }
       if (millis() - up_started_time >= door_up_timeout) {
-        Serial.println("door timedout");
+        do_send_log("door timedout");
         status_code.concat(01);
         door_timed_out = true;
         _stop();
         break;
       }
     }
-    else {
-      Serial.println("door timed out!");
-    }
   }
 }
 
 void down() {
   if (door_timed_out == false) {
-    Serial.println("down started");
+    do_send_log("down started");
     digitalWrite(m11, LOW);
     digitalWrite(m12, HIGH);
     delay(downtraveltime);
     _stop();
-    Serial.println("down stoped");
     door_state = false;
   }
   else {
-    Serial.println("door timed out!!");
+    do_send_log("door timed out");
     _stop();
   }
 }
@@ -90,14 +89,14 @@ void down() {
 void zaun(bool state) {
   digitalWrite(zaun_relais_pin, state);
   zaun_state = state;
-  Serial.print("zaunstate: ");
-  Serial.println(zaun_state);
+  do_send_log("door timed out");
+  log_message_s = "zaunstate ";
+  log_message_s.concat(String(zaun_state));
+  do_send_log(log_message_s);
 }
 
 void setup () {
-  Serial.println("Starting");
-
-  Serial.begin(9600);
+  do_send_log("Starting");
   Wire.begin();
 
   pinMode(voltage_pin, INPUT);
@@ -111,8 +110,7 @@ void setup () {
 
 
   if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    Serial.flush();
+    do_send_log("cound't find rtc");
     abort();
     status_code.concat(02);
   }
@@ -120,6 +118,9 @@ void setup () {
   DateTime now = rtc.now();
 
   old_month = now.month();
+  log_message_s = "old month: ";
+  log_message_s.concat(String(old_month));
+
   for (int i = 0; i <= 12; i++) {
 
     if (i <= 12 and i >= 7) {
@@ -136,45 +137,73 @@ void setup () {
   }
 
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
+    do_send_log("intial");
     up();
     zaun(true);
-    do_send();
+    do_send_data();
   }
   else {
+    do_send_log("intial");
     up();
     down();
     zaun(false);
-    do_send();
+    do_send_data();
   }
-  Serial.print(now.month());
-  Serial.print(" ");
-  Serial.print(int(uptime_h));
-  Serial.print(":");
-  Serial.print(int(uptime_m));
-  Serial.print("/");
-  Serial.print(int(downtime_h));
-  Serial.print(":");
-  Serial.println(int(downtime_m));
+  log_message_s = String(uptime_h);
+  log_message_s.concat("/");
+  log_message_s.concat(downtime_h);
+  do_send_log("up/down: ");
 }
 
-void do_send() {
+void do_send_data() {
 
   voltage = map(analogRead(voltage_pin), 0, 1023, 0, 218);
+  do_send_log("send data i2c");
+  char device_id_array[1];
+  char status_code_array[5];
+  char door_state_array[1];
+  char zaun_state_array[1];
+  char voltage_array[3];
+  char uptime_h_array[2];
+  char downtime_h_array[2];
+  char uptime_m_array[2];
+  char downtime_m_array[2];
+
+  status_code.toCharArray(status_code_array, 1);
+  //int Voltage;
+  //voltage.toInt();
+  //int(voltage).toCharArray(voltage_array, 3);
   
-  Serial.println("send data I2C");
   Wire.beginTransmission(5);
-  Wire.write(status_code.toInt());
+  Wire.write(0);
+  Wire.write(status_code);
   Wire.write(door_state);
   Wire.write(zaun_state);
-  Wire.write(voltage);
+  Wire.write(Voltage);
   Wire.write(int(uptime_h));
   Wire.write(int(uptime_m));
   Wire.write(int(downtime_h));
   Wire.write(int(downtime_m));
   Wire.endTransmission();
-  Serial.println("done sending data I2C");
+  do_send_log("done sending data i2c");
 }
 
+void do_send_log(String text) {
+  text.toCharArray(log_message, 20);
+  text.concat(relevant_time());
+  Wire.beginTransmission(5);
+  Wire.write(1);
+  Wire.write(log_message);
+  Wire.endTransmission();
+}
+
+String relevant_time() {
+  DateTime now = rtc.now();
+  log_time.concat(String(now.month()));
+  log_time.concat(String(now.hour()));
+  log_time.concat(String(now.minute()));
+  return log_time;
+}
 
 void loop () {
 
@@ -190,62 +219,69 @@ void loop () {
     if (door_btn_triggered == true) {
       if (millis() - door_btn_triggered_time > refit_door_time) {
         door_btn_triggered = false;
+        do_send_log("outside up");
       }
     }
     else {
       if (door_state == false) {
+        do_send_log("timed up");
         up();
         zaun(true);
-        do_send();
+        do_send_data();
+
       }
     }
   }
   else {
     if (door_btn_triggered == true) {
       if (millis() - door_btn_triggered_time > refit_door_time) {
+        do_send_log("outside down");
         door_btn_triggered = false;
       }
     }
     else {
       if (door_state == true) {
+        do_send_log("timed down");
         down();
         zaun(false);
-        do_send();
+        do_send_data();
       }
     }
   }
 
   //-------------------------------------------------------------------------------------------------------------- -
   /*if (send_btn == HIGH) {
-    do_send();
+    do_send_data();
     delay(400);
     }
   */
   //-------------------------------------------------------------------------------------------------------------- -
-  
+
   if (door_btn == HIGH) {
     if (door_state == true) {
-      Serial.println("door down");
+      do_send_log("btn down");
       down();
     }
     else {
-      Serial.println("door up");
+      do_send_log("btn up");
       up();
     }
     door_btn_triggered = true;
     door_btn_triggered_time = millis();
-    do_send();
+    do_send_data();
     delay(400);
   }
   //-------------------------------------------------------------------------------------------------------------- -
   if (zaun_btn == HIGH) {
     if (zaun_state == false) {
+      do_send_log("bt zaun an ");
       zaun(true);
-      do_send();
+      do_send_data();
     }
     else {
+      do_send_log("bt zaun aus ");
       zaun(false);
-      do_send();
+      do_send_data();
     }
     delay(400);
   }
@@ -261,5 +297,10 @@ void loop () {
       downtime_h = downtime_h + 1.2;
     }
     old_month = now.month();
+    log_message_s = "month changed ";
+    log_message_s.concat(String(uptime_h));
+    log_message_s.concat("/");
+    log_message_s.concat(String(uptime_m));
+    do_send_log(log_message_s);
   }
 }
