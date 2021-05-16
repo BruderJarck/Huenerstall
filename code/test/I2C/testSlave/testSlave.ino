@@ -1,8 +1,8 @@
 #include <Wire.h>
 #include <avr/sleep.h>
 
-uint8_t received_measurements[2];
-unsigned char last_received;
+uint8_t received_measurements[5];
+int last_received;
 int index = 0;
 
 const int alarmPin = 4; 
@@ -11,7 +11,7 @@ void setup() {
   Serial.begin(9600);
   Wire.begin(5);
   Wire.onReceive(on_receiveEvent);
-  enter_sleep();
+  //enter_sleep();
 }
 void enter_sleep() {
   sleep_enable();                       // Enabling sleep mode
@@ -45,12 +45,19 @@ void on_receiveEvent(int howMany) {
     received_measurements[index] = last_received;
     index++;
     Serial.print("receicing: ");
-    Serial.println(last_received);
+    Serial.println(char(last_received));
   }
   Serial.println("sending done, view received_measurements");
   for (int i = 0; i <= sizeof(received_measurements)-1; i++) {
     Serial.println(received_measurements[i]);
-    received_measurements[i] = 0;
+    //received_measurements[i] = 0;
   }
+  if(int(received_measurements[0]) == 0){
+    Serial.println("1");
+  }
+  else{
+    Serial.println("2");
+  }
+  
 }
 void loop() {}

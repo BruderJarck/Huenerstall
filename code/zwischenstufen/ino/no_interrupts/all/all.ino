@@ -34,14 +34,15 @@ bool door_timed_out;
 unsigned long door_btn_triggered_time = 0;
 unsigned long up_started_time = 0;
 
-char log_message[20];
-String log_message_s;
 String log_time;
+String data_s;
+String log_message_s;
+char message[20];
 int voltage;
 RTC_DS3231 rtc;
 
 void _stop() {
-  do_send_log("stop");
+  do_send_log("door stop");
   digitalWrite(m11, LOW);
   digitalWrite(m12, LOW);
 }
@@ -61,7 +62,7 @@ void up() {
         break;
       }
       if (millis() - up_started_time >= door_up_timeout) {
-        do_send_log("door timedout");
+        do_send_log("door timed out");
         status_code.concat(01);
         door_timed_out = true;
         _stop();
@@ -89,8 +90,7 @@ void down() {
 void zaun(bool state) {
   digitalWrite(zaun_relais_pin, state);
   zaun_state = state;
-  do_send_log("door timed out");
-  log_message_s = "zaunstate ";
+  log_message_s = "zaunstate toggle, new: ";
   log_message_s.concat(String(zaun_state));
   do_send_log(log_message_s);
 }
@@ -118,8 +118,9 @@ void setup () {
   DateTime now = rtc.now();
 
   old_month = now.month();
-  log_message_s = "old month: ";
+  log_message_s = "start month: ";
   log_message_s.concat(String(old_month));
+  do_send_log(log_message_s);
 
   for (int i = 0; i <= 12; i++) {
 
@@ -137,71 +138,62 @@ void setup () {
   }
 
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
-    do_send_log("intial");
+    do_send_log("setup up");
     up();
     zaun(true);
     do_send_data();
   }
   else {
-    do_send_log("intial");
+    do_send_log("setup down");
     up();
     down();
     zaun(false);
     do_send_data();
   }
-  log_message_s = String(uptime_h);
+  log_message_s = "up/down time: ";
+  log_message_s.concat(String(uptime_h));
   log_message_s.concat("/");
   log_message_s.concat(downtime_h);
-  do_send_log("up/down: ");
+  do_send_log(log_message_s);
 }
 
 void do_send_data() {
-
   voltage = map(analogRead(voltage_pin), 0, 1023, 0, 218);
-  do_send_log("send data i2c");
-  char device_id_array[1];
-  char status_code_array[5];
-  char door_state_array[1];
-  char zaun_state_array[1];
-  char voltage_array[3];
-  char uptime_h_array[2];
-  char downtime_h_array[2];
-  char uptime_m_array[2];
-  char downtime_m_array[2];
-
-  status_code.toCharArray(status_code_array, 1);
-  //int Voltage;
-  //voltage.toInt();
-  //int(voltage).toCharArray(voltage_array, 3);
-  
+  data_s.concat(door_state);
+  data_s.concat(voltage);
+  data_s.concat(uptime_h);
+  data_s.concat(relevant_time());
+  data_s.toCharArray(message, 20);
+  Serial.println(data_s);
   Wire.beginTransmission(5);
-  Wire.write(0);
-  Wire.write(status_code);
-  Wire.write(door_state);
-  Wire.write(zaun_state);
-  Wire.write(Voltage);
-  Wire.write(int(uptime_h));
-  Wire.write(int(uptime_m));
-  Wire.write(int(downtime_h));
-  Wire.write(int(downtime_m));
+  Wire.write(0);//log bool
+  Wire.write(0);//device id
+  Wire.write(message);
   Wire.endTransmission();
-  do_send_log("done sending data i2c");
+  memset(message, " ", sizeof(message));
 }
 
 void do_send_log(String text) {
-  text.toCharArray(log_message, 20);
   text.concat(relevant_time());
+  text.toCharArray(message, 20);
+  Serial.println(text);
   Wire.beginTransmission(5);
-  Wire.write(1);
-  Wire.write(log_message);
+  Wire.write(1);//log bool
+  Wire.write(0);//device id
+  Wire.write(message, sizeof(message));
   Wire.endTransmission();
+  memset(message, " ", sizeof(message));
 }
 
 String relevant_time() {
   DateTime now = rtc.now();
+  log_time = "";
   log_time.concat(String(now.month()));
+  log_time.concat(",");
   log_time.concat(String(now.hour()));
+  log_time.concat(":");
   log_time.concat(String(now.minute()));
+  //Serial.println(log_time);
   return log_time;
 }
 
@@ -219,12 +211,11 @@ void loop () {
     if (door_btn_triggered == true) {
       if (millis() - door_btn_triggered_time > refit_door_time) {
         door_btn_triggered = false;
-        do_send_log("outside up");
       }
     }
     else {
       if (door_state == false) {
-        do_send_log("timed up");
+        do_send_log("planed door up");
         up();
         zaun(true);
         do_send_data();
@@ -235,13 +226,12 @@ void loop () {
   else {
     if (door_btn_triggered == true) {
       if (millis() - door_btn_triggered_time > refit_door_time) {
-        do_send_log("outside down");
         door_btn_triggered = false;
       }
     }
     else {
       if (door_state == true) {
-        do_send_log("timed down");
+        do_send_log("planed door down");
         down();
         zaun(false);
         do_send_data();
@@ -259,11 +249,11 @@ void loop () {
 
   if (door_btn == HIGH) {
     if (door_state == true) {
-      do_send_log("btn down");
+      do_send_log("user triggered door up");
       down();
     }
     else {
-      do_send_log("btn up");
+      do_send_log("user triggerd door down");
       up();
     }
     door_btn_triggered = true;
@@ -274,12 +264,12 @@ void loop () {
   //-------------------------------------------------------------------------------------------------------------- -
   if (zaun_btn == HIGH) {
     if (zaun_state == false) {
-      do_send_log("bt zaun an ");
+      do_send_log("user triggerd zaun on");
       zaun(true);
       do_send_data();
     }
     else {
-      do_send_log("bt zaun aus ");
+      do_send_log("user triggerd zaun off");
       zaun(false);
       do_send_data();
     }
@@ -297,7 +287,7 @@ void loop () {
       downtime_h = downtime_h + 1.2;
     }
     old_month = now.month();
-    log_message_s = "month changed ";
+    log_message_s = "month changed, new: ";
     log_message_s.concat(String(uptime_h));
     log_message_s.concat("/");
     log_message_s.concat(String(uptime_m));

@@ -1,6 +1,7 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
+#include <SD.h>
 #include <Wire.h>
 #include "RTClib.h"
 #include <avr/sleep.h>
@@ -20,6 +21,8 @@ int index = 0;
 const int alarmPin = 2;
 int statepin = 3;
 
+String DATALOG = "log.txt";
+
 const lmic_pinmap lmic_pins = {
   .nss = 10,
   .rxtx = LMIC_UNUSED_PIN,
@@ -28,11 +31,10 @@ const lmic_pinmap lmic_pins = {
 };
 
 void setup() {
+  write_to_log("11Starting", 9, false);
   Serial.begin(9600);
   Wire.begin(5);
   Wire.onReceive(on_receiveEvent);
-  Serial.println(F("Starting"));
-
   pinMode(statepin, INPUT_PULLUP);
 
   Wire.begin();
@@ -64,57 +66,37 @@ void setup() {
   LMIC_setDrTxpow(DR_SF7, 14);
 
   do_send(&sendjob);
-
-  //enter_sleep();
-}
-void enter_sleep() {
-  sleep_enable();                       // Enabling sleep mode
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  // Setting the sleep mode, in this case full sleep
-
-  noInterrupts();                       // Disable interrupts
-  attachInterrupt(digitalPinToInterrupt(alarmPin), on_alarm, RISING);
-
-  Serial.println("Going to sleep!");    // Print message to serial monitor
-  Serial.flush();                       // Ensure all characters are sent to the serial monitor
-
-  interrupts();                         // Allow interrupts again
-  sleep_cpu();                          // Enter sleep mode
-
-  /* The program will continue from here when it wakes */
-
-
-  Serial.println("I'm back!");          // Print message to show we're back
-}
-
-
-void on_alarm() {
-  sleep_disable();
-  detachInterrupt(digitalPinToInterrupt(alarmPin));
-  Serial.println("i'm back");
 }
 
 void on_receiveEvent(int howMany) {
-  while (Wire.available())
+  for (int i = 0; i <= howMany; i++)
   {
     last_received = Wire.read();
-    received_measurements[index] = last_received;
-    index++;
-  }
-  Serial.println("receiving sens data done, view received_measurements:");
-  for (int i = 0; i <= sizeof(received_measurements) - 1; i++) {
+    received_measurements[i] = last_received;
+    Serial.print("receiving[");
+    Serial.print(i);
+    Serial.print("]: ");
     Serial.println(received_measurements[i]);
-    write_to_log(received_measurements[i]);
   }
-  index = 0;
+  Serial.println("receiving sens data done");
 
-  if (received_measurements[0] == 0) {
-    os_setCallback(&sendjob, do_send);
-  }
-  else if (received_measurements[0] == 1) {
-
+  if (int(received_measurements[0]) == 0) {
+    Serial.println("lora send");
+    write_to_log(received_measurements, sizeof(received_measurements), true);
+    memset(received_measurements, "", sizeof(received_measurements));
   }
 
+  else if (int(received_measurements[0] == 1)) {
+    Serial.println("log");
+    write_to_log(received_measurements, sizeof(received_measurements), false);
+    memset(received_measurements, "", sizeof(received_measurements));
+  }
+  else {
+    Serial.println("undefined");
+    write_to_log("11undefined log bool", 20, false);
+  }
 }
+
 
 void onEvent (ev_t ev) {
   Serial.print(os_getTime());
@@ -122,47 +104,47 @@ void onEvent (ev_t ev) {
   switch (ev) {
     case EV_SCAN_TIMEOUT:
       Serial.println(F("EV_SCAN_TIMEOUT"));
-      write_to_log("EV_SCAN_TIMEOUT");
+      write_to_log("11EV_SCAN_TIMEOUT", sizeof("11EV_SCAN_TIMEOUT"), false);
       break;
 
     case EV_BEACON_FOUND:
       Serial.println(F("EV_BEACON_FOUND"));
-      write_to_log("EV_BEACON_FOUND");
+      write_to_log("11EV_BEACON_FOUND", sizeof("11EV_BEACON_FOUND"), false);
       break;
 
     case EV_BEACON_MISSED:
       Serial.println(F("EV_BEACON_MISSED"));
-      write_to_log("EV_BEACON_MISSED");
+      write_to_log("11EV_BEACON_MISSED", sizeof("11EV_BEACON_MISSED"), false);
       break;
 
     case EV_BEACON_TRACKED:
       Serial.println(F("EV_BEACON_TRACKED"));
-      write_to_log("EV_BEACON_TRACKED");
+      write_to_log("11EV_BEACON_TRACKED", sizeof("11EV_BEACON_TRACKED"), false);
       break;
 
     case EV_JOINING:
       Serial.println(F("EV_JOINING"));
-      write_to_log("EV_JOINING");
+      write_to_log("11EV_JOINING", sizeof("11EV_JOINING"), false);
       break;
 
     case EV_JOINED:
       Serial.println(F("EV_JOINED"));
-      write_to_log("EV_JOINED");
+      write_to_log("11EV_JOINED", sizeof("11EV_JOINED"), false);
       break;
 
     case EV_RFU1:
       Serial.println(F("EV_RFU1"));
-      write_to_log("EV_RFU1");
+      write_to_log("11EV_RFU1", sizeof("11EV_RFU1"), false);
       break;
 
     case EV_JOIN_FAILED:
       Serial.println(F("EV_JOIN_FAILED"));
-      write_to_log("EV_JOIN_FAILED");
+      write_to_log("11EV_JOIN_FAILED", sizeof("11EV_JOIN_FAILED"), false);
       break;
 
     case EV_REJOIN_FAILED:
       Serial.println(F("EV_REJOIN_FAILED"));
-      write_to_log("EV_REJOIN_FAILED");
+      write_to_log("11EV_REJOIN_FAILED", sizeof("11EV_REJOIN_FAILED"), false);
       break;
 
     case EV_TXCOMPLETE:
@@ -173,39 +155,39 @@ void onEvent (ev_t ev) {
         Serial.print(F("Data Received: "));
         Serial.write(LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
         Serial.println();
-        write_to_log("EV_TXCOMPLETE");
-
+        write_to_log("11EV_TXCOMPLETE", sizeof("11EV_TXCOMPLETE"), false);
       }
       break;
+
     case EV_LOST_TSYNC:
       Serial.println(F("EV_LOST_TSYNC"));
-      write_to_log("EV_LOST_TSYNC");
+      write_to_log("11EV_LOST_TSYNC", sizeof("11EV_LOST_TSYNC"), false);
       break;
 
     case EV_RESET:
       Serial.println(F("EV_RESET"));
-      write_to_log("EV_RESET");
+      write_to_log("11EV_RESET", sizeof("11EV_RESET"), false);
       break;
 
     case EV_RXCOMPLETE:
       // data received in ping slot
       Serial.println(F("EV_RXCOMPLETE"));
-      write_to_log("EV_RXCOMPLETE");
+      write_to_log("11EV_RXCOMPLETE", sizeof("11EV_RXCOMPLETE"), false);
       break;
 
     case EV_LINK_DEAD:
       Serial.println(F("EV_LINK_DEAD"));
-      write_to_log("EV_LINK_DEAD");
+      write_to_log("11EV_LINK_DEAD", sizeof("11EV_LINK_DEAD"), false);
       break;
 
     case EV_LINK_ALIVE:
       Serial.println(F("EV_LINK_ALIVE"));
-      write_to_log("EV_LINK_ALIVE");
+      write_to_log("11EV_LINK_ALIVE", sizeof("11EV_LINK_ALIVE"), false);
       break;
 
     default:
       Serial.println(F("Unknown event"));
-      write_to_log("Unknown event");
+      write_to_log("11Unknown event", sizeof("11Unknown event"), false);
       break;
   }
 }
@@ -220,23 +202,59 @@ void do_send(osjob_t* j) {
   */
   if (LMIC.opmode & OP_TXRXPEND) {
     Serial.println(F("OP_TXRXPEND, not sending"));
-    write_to_log("OP_TXRXPEND, not sending");
+    write_to_log("11OP_TXRXPEND, not sending", sizeof("11OP_TXRXPEND, not sending"), false);
 
   } else {
     LMIC_setTxData2(1, (uint8_t*) received_measurements, sizeof(received_measurements), 0);
     Serial.println(F("Packet queued"));
-    write_to_log("Packet queued");
+    write_to_log("11Packet queued", sizeof("Packet queued"), false);
   }
 }
 
-void write_to_log(String content) {
-  File outputFile = SD.open(LOG_FILE, FILE_WRITE);
+void write_to_log(char content[], int _sizeof, bool data) {
+  File outputFile = SD.open("log_data.txt", FILE_WRITE);
 
-  if (dataFile) {
+  if (outputFile) {
     outputFile.seek(EOF);
-    outputFile.println(content);
-    outputFiletaFile.close();
-    Serial.println(content);
+
+    for (int i = 1; i <= _sizeof; i++) {
+
+      if (data) {
+        switch (i) {
+          case 1:
+            outputFile.print("device: 0 ");
+          case 2:
+            outputFile.print("doorstate: ");
+            break;
+          case 3:
+            outputFile.print("voltage: ");
+            break;
+          case 6:
+            outputFile.print("uptime:");
+            break;
+          case 7:
+            outputFile.print("time: ");
+            break;
+        }
+        outputFile.print(content[i]);
+        outputFile.print(" ");
+      }
+      else {
+        if (i == 1) {
+          outputFile.print("device: ");
+          outputFile.print(int(content[1]));
+          outputFile.print(" ");
+        }
+        else {
+          outputFile.print(content[i]);
+        }
+      }
+      //Serial.print(content[i]);
+    }
+    outputFile.println(" ");
+    //Serial.println("");
+    Serial.println("writing to log");
+    outputFile.close();
   }
 
   else {
