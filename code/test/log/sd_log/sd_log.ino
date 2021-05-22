@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-const int chipSelect = 10;
+const int chipSelect = 3;
 const int integer = 125;
 String integer_s = "hallo ";
 char message[20];

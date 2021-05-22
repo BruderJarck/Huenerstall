@@ -208,6 +208,8 @@ void loop () {
   if (door_btn == HIGH) {
     if (door_state == true) {
       down();
+
+      
     }
     else {
       up();
