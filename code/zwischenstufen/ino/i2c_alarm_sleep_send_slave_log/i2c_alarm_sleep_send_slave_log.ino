@@ -31,8 +31,12 @@ const lmic_pinmap lmic_pins = {
 };
 
 void setup() {
-  write_to_log("11Starting", 9, false);
   Serial.begin(9600);
+
+  while (!SD.begin(3)) {
+    Serial.println("initialization failed");
+  }
+  write_to_log("11Starting", 9, false);
   Wire.begin(5);
   Wire.onReceive(on_receiveEvent);
   pinMode(statepin, INPUT_PULLUP);
@@ -73,15 +77,12 @@ void on_receiveEvent(int howMany) {
   {
     last_received = Wire.read();
     received_measurements[i] = last_received;
-    Serial.print("receiving[");
-    Serial.print(i);
-    Serial.print("]: ");
     Serial.println(received_measurements[i]);
   }
-  Serial.println("receiving sens data done");
 
   if (int(received_measurements[0]) == 0) {
     Serial.println("lora send");
+    os_setCallback(&sendjob, do_send);
     write_to_log(received_measurements, sizeof(received_measurements), true);
     memset(received_measurements, "", sizeof(received_measurements));
   }
@@ -102,50 +103,6 @@ void onEvent (ev_t ev) {
   Serial.print(os_getTime());
   Serial.print(": ");
   switch (ev) {
-    case EV_SCAN_TIMEOUT:
-      Serial.println(F("EV_SCAN_TIMEOUT"));
-      write_to_log("11EV_SCAN_TIMEOUT", sizeof("11EV_SCAN_TIMEOUT"), false);
-      break;
-
-    case EV_BEACON_FOUND:
-      Serial.println(F("EV_BEACON_FOUND"));
-      write_to_log("11EV_BEACON_FOUND", sizeof("11EV_BEACON_FOUND"), false);
-      break;
-
-    case EV_BEACON_MISSED:
-      Serial.println(F("EV_BEACON_MISSED"));
-      write_to_log("11EV_BEACON_MISSED", sizeof("11EV_BEACON_MISSED"), false);
-      break;
-
-    case EV_BEACON_TRACKED:
-      Serial.println(F("EV_BEACON_TRACKED"));
-      write_to_log("11EV_BEACON_TRACKED", sizeof("11EV_BEACON_TRACKED"), false);
-      break;
-
-    case EV_JOINING:
-      Serial.println(F("EV_JOINING"));
-      write_to_log("11EV_JOINING", sizeof("11EV_JOINING"), false);
-      break;
-
-    case EV_JOINED:
-      Serial.println(F("EV_JOINED"));
-      write_to_log("11EV_JOINED", sizeof("11EV_JOINED"), false);
-      break;
-
-    case EV_RFU1:
-      Serial.println(F("EV_RFU1"));
-      write_to_log("11EV_RFU1", sizeof("11EV_RFU1"), false);
-      break;
-
-    case EV_JOIN_FAILED:
-      Serial.println(F("EV_JOIN_FAILED"));
-      write_to_log("11EV_JOIN_FAILED", sizeof("11EV_JOIN_FAILED"), false);
-      break;
-
-    case EV_REJOIN_FAILED:
-      Serial.println(F("EV_REJOIN_FAILED"));
-      write_to_log("11EV_REJOIN_FAILED", sizeof("11EV_REJOIN_FAILED"), false);
-      break;
 
     case EV_TXCOMPLETE:
       Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
@@ -159,10 +116,6 @@ void onEvent (ev_t ev) {
       }
       break;
 
-    case EV_LOST_TSYNC:
-      Serial.println(F("EV_LOST_TSYNC"));
-      write_to_log("11EV_LOST_TSYNC", sizeof("11EV_LOST_TSYNC"), false);
-      break;
 
     case EV_RESET:
       Serial.println(F("EV_RESET"));
@@ -175,16 +128,6 @@ void onEvent (ev_t ev) {
       write_to_log("11EV_RXCOMPLETE", sizeof("11EV_RXCOMPLETE"), false);
       break;
 
-    case EV_LINK_DEAD:
-      Serial.println(F("EV_LINK_DEAD"));
-      write_to_log("11EV_LINK_DEAD", sizeof("11EV_LINK_DEAD"), false);
-      break;
-
-    case EV_LINK_ALIVE:
-      Serial.println(F("EV_LINK_ALIVE"));
-      write_to_log("11EV_LINK_ALIVE", sizeof("11EV_LINK_ALIVE"), false);
-      break;
-
     default:
       Serial.println(F("Unknown event"));
       write_to_log("11Unknown event", sizeof("11Unknown event"), false);
@@ -193,13 +136,6 @@ void onEvent (ev_t ev) {
 }
 
 void do_send(osjob_t* j) {
-  /*
-    int _minutes = 57;
-    int batVoltage = map(1259, 1100, 1400, 0, 255);
-    measurement[0] = _minutes;
-    measurement[1] = batVoltage;
-    measurement[2] = !digitalRead(statepin);
-  */
   if (LMIC.opmode & OP_TXRXPEND) {
     Serial.println(F("OP_TXRXPEND, not sending"));
     write_to_log("11OP_TXRXPEND, not sending", sizeof("11OP_TXRXPEND, not sending"), false);
