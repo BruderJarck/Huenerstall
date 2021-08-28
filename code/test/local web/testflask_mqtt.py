@@ -29,7 +29,7 @@ datafile = "./data.csv"
 @mobile_template('{mobile/}index.html')
 def index(template):
     if payload[0] is not None:
-        status_code = payload[0]
+        status_code = str(payload[0])
     else:
         status_code = "'unbekannter Statuscode'"
     if payload[1] == 0:
@@ -57,19 +57,19 @@ def index(template):
         uptime_h = "'unbekannt'"
 
     if payload[5] is not None:
-        uptime_m = payload[5]
-    else:
-        uptime_m = "'unbekannt'"
-
-    if payload[6] is not None:
-        downtime_h = payload[6]
+        downtime_h = payload[5]
     else:
         downtime_h = "'unbekannt'"
 
-    if payload[7] is not None:
-        downtime_m = payload[7]
+    if payload[6] is not None:
+        last_h = payload[6]
     else:
-        downtime_m = "'unbekannt'"
+        last_h = "'unbekannt'"
+
+    if payload[7] is not None:
+        last_m = payload[7]
+    else:
+        last_m = "'unbekannt'"
 
     template_data = {
         'title': 'OpenHennery webinterface',
@@ -81,9 +81,9 @@ def index(template):
         'labels': labels,
         'values': values,
         'uptime_h': uptime_h,
-        'uptime_m': uptime_m,
         'downtime_h': downtime_h,
-        'downtime_m': downtime_m
+        'last_h': last_h,
+        'last_m': last_m
     }
     return render_template(template, **template_data)
 
@@ -143,6 +143,18 @@ def on_message(client, userdata, msg):
             values.pop(0)
 
         append_to_file(logfile, f"[shortened] \tlen:labels/values: {len(labels)}/{len(values)}")
+
+    last_h = payload[6]
+    last_m = payload[7]
+
+    diff_h = datetime.now().hour - last_h
+    diff_m = datetime.now().minute - last_m
+
+    if diff_h > 1 :
+        payload[0] = str(payload[0]) + "03"
+    if diff_m > 5:
+        payload[0] = str(payload[0]) + "04"
+
 
 
 def append_to_file(file, message):
