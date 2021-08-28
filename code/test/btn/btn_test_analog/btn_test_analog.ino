@@ -1,6 +1,6 @@
 int pin1 = A0;
 int pin2 = A1;
-int pin3 = 2;
+int pin3 = A3;
 int pin4 = 12;
 
 bool bt1;
@@ -23,18 +23,12 @@ void loop() {
   bt3 = !digitalRead(pin3);
   bt4 = !digitalRead(pin4);
 
-  Serial.print("1: ");
+  Serial.print("0: ");
   Serial.print(bt1);
-  Serial.print(" 2: ");
+  Serial.print(" 1: ");
   Serial.print(bt2);
-  Serial.print(" 3: ");
+  Serial.print(" 2: ");
   Serial.print(bt3);
-  Serial.print(" 4: ");
+  Serial.print(" 12: ");
   Serial.println(bt4);
-  if (bt1 or bt2 or bt3 or bt4 == HIGH) {
-    digitalWrite(13, HIGH);
-  }
-  else {
-    digitalWrite(13, LOW);
-  }
 }

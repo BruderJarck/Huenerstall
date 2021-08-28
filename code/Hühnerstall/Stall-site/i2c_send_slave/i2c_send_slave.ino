@@ -13,7 +13,7 @@ void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 static osjob_t sendjob;
 
-uint8_t received_measurements[20];
+uint8_t received_measurements[10];
 unsigned char last_received;
 int index = 0;
 

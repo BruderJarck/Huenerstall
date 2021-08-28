@@ -1,4 +1,4 @@
-int measure_pin = A2;
+int measure_pin = A1;
 float voltage;
 void setup() {
   pinMode(measure_pin, INPUT);
@@ -7,9 +7,9 @@ void setup() {
 }
 
 void loop() {
-  voltage = map(analogRead(measure_pin), 0, 1023, 0, 2180);
+  voltage = map(analogRead(measure_pin), 0, 1023, 0, 15);
   Serial.print(voltage);
-  Serial.print(" mV,  ");
+  Serial.print(" V,  ");
   Serial.println(analogRead(measure_pin));
   
 
