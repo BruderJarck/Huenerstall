@@ -1,16 +1,21 @@
 #include <Wire.h>
 #include "RTClib.h"
 
+const unsigned int uphours[] = {10, 10, 8, 7, 5, 4, 4, 5, 6, 7, 8, 9};
+const unsigned int upminutes[] = {0, 30, 0, 20, 0, 30, 30, 0, 15, 0, 50, 30};
+const unsigned int downhours[] = {15, 16, 18, 18, 19, 20, 20, 20, 19, 18, 16, 15};
+const unsigned int downminutes[] = {30, 30, 0, 45, 30, 10, 30, 0, 0, 0, 20, 30};
+
 const int door_btn_pin = A0;
 const int end_btn_pin = 12;
 const int zaun_relais_pin = A3;
 const int m11 = 6;
 const int m12 = 7;
 
-float uptime_h = 6;
-float uptime_m = 0;   //minutes
-float downtime_h = 21;
-float downtime_m = 0; //minutes
+unsigned int uptime_h;
+unsigned int uptime_m;
+unsigned int downtime_h;
+unsigned int downtime_m;
 
 bool send_btn;
 bool door_btn;
@@ -39,7 +44,7 @@ void up() {
   up_started_time = millis();
   while (true) {
     end_btn = !digitalRead(end_btn_pin);
-    
+
     if ( door_timed_out == false) {
       Serial.println(end_btn);
       digitalWrite(m11, HIGH);
@@ -57,7 +62,7 @@ void up() {
         break;
       }
     }
-    else{
+    else {
       Serial.println("timedout");
     }
   }
@@ -78,7 +83,7 @@ void down() {
 }
 
 void zaun(bool state) {
-  digitalWrite(zaun_relais_pin, state);
+  digitalWrite(zaun_relais_pin, !state);
   zaun_state = state;
 }
 
@@ -100,12 +105,21 @@ void setup () {
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     up();
     zaun(false);
-    }
+  }
   else {
     up();
     down();
     zaun(true);
   }
+}
+
+void refit_up_down_times() {
+  DateTime now = rtc.now();
+
+  uptime_h = uphours[now.month()];
+  uptime_m = upminutes[now.month()];
+  downtime_h = downhours[now.month()];
+  downtime_m = downminutes[now.month()];
 }
 
 void loop () {
@@ -114,6 +128,7 @@ void loop () {
 
   door_btn = digitalRead(door_btn_pin);
   Serial.println("loop");
+
   //---------------------------------------------------------------------------------------------------------------
 
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
@@ -126,6 +141,7 @@ void loop () {
       if (door_state == false) {
         up();
         zaun(false);
+        refit_up_down_times();
       }
     }
   }
@@ -139,6 +155,7 @@ void loop () {
       if (door_state == true) {
         down();
         zaun(true);
+        refit_up_down_times(); 
       }
     }
   }
