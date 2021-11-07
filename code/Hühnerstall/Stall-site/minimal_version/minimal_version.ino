@@ -23,7 +23,7 @@ bool end_btn ;
 bool door_btn_triggered = false;
 int downtraveltime = 1000; //ms
 int door_up_timeout = 3000; //ms
-unsigned int refit_door_time = 60000; //ms
+unsigned int refit_door_time = 10000; //ms
 bool door_state;
 bool zaun_state = false;
 bool door_timed_out;
@@ -98,6 +98,7 @@ void setup () {
 
 
   if (! rtc.begin()) {
+    Serial.println("rtc failure");
     abort();
   }
 
@@ -185,7 +186,20 @@ void loop () {
     delay(400);
   }
 
-
+  if (door_btn_triggered == true) {
+    if (millis() - door_btn_triggered_time >= refit_door_time) {
+      door_btn_triggered = false;
+      Serial.println("reset to supposed state");
+      if (door_state == false) {
+        up();
+      }
+      else {
+        if (door_state == true) {
+          down();
+        }
+      }
+    }
   }
+}
 
-  //-------------------------------------------------------------------------------------------------------------- -
+//-------------------------------------------------------------------------------------------------------------- -
