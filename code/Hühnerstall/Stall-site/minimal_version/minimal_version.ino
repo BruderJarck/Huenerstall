@@ -66,7 +66,6 @@ void up() {
       Serial.println("timedout");
     }
   }
-  delay(2000);
 }
 
 void down() {
