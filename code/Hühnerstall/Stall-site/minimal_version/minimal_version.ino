@@ -3,8 +3,8 @@
 
 const unsigned int uphours[] = {10, 10, 8, 7, 5, 4, 4, 5, 6, 7, 8, 9};
 const unsigned int upminutes[] = {0, 30, 0, 20, 0, 30, 30, 0, 15, 0, 50, 30};
-const unsigned int downhours[] = {15, 16, 18, 18, 19, 20, 20, 20, 19, 18, 16, 15};
-const unsigned int downminutes[] = {30, 30, 0, 45, 30, 10, 30, 0, 0, 0, 20, 30};
+const unsigned int downhours[] = {16, 17, 18, 19, 20, 20, 21, 20, 19, 18, 18, 18};
+const unsigned int downminutes[] = {15, 15, 45, 30, 15, 55, 15, 45, 45, 45, 50, 00};
 
 const int door_btn_pin = A0;
 const int end_btn_pin = 12;
@@ -83,7 +83,7 @@ void down() {
 }
 
 void zaun(bool state) {
-  digitalWrite(zaun_relais_pin, !state);
+  digitalWrite(zaun_relais_pin, state);
   zaun_state = state;
 }
 
@@ -101,6 +101,10 @@ void setup () {
   }
 
   DateTime now = rtc.now();
+  Serial.print(now.hour());
+  Serial.println(now.minute());
+  
+  refit_up_down_times();
 
   if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
     up();
@@ -115,11 +119,14 @@ void setup () {
 
 void refit_up_down_times() {
   DateTime now = rtc.now();
-
-  uptime_h = uphours[now.month()];
-  uptime_m = upminutes[now.month()];
-  downtime_h = downhours[now.month()];
-  downtime_m = downminutes[now.month()];
+  uptime_h = uphours[now.month()-1];
+  uptime_m = upminutes[now.month()-1];
+  downtime_h = downhours[now.month()-1];
+  downtime_m = downminutes[now.month()-1];
+  Serial.print(uptime_h);
+  Serial.print(uptime_m);
+  Serial.print(downtime_h);
+  Serial.println(downtime_m);
 }
 
 void loop () {
@@ -155,7 +162,7 @@ void loop () {
       if (door_state == true) {
         down();
         zaun(true);
-        refit_up_down_times(); 
+        refit_up_down_times();
       }
     }
   }
