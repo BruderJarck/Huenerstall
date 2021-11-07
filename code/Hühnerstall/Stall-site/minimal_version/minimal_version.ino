@@ -4,7 +4,7 @@
 const unsigned int uphours[] = {10, 10, 8, 7, 5, 4, 4, 5, 6, 7, 8, 9};
 const unsigned int upminutes[] = {0, 30, 0, 20, 0, 30, 30, 0, 15, 0, 50, 30};
 const unsigned int downhours[] = {16, 17, 18, 19, 20, 20, 21, 20, 19, 18, 18, 18};
-const unsigned int downminutes[] = {15, 15, 45, 30, 15, 55, 15, 45, 45, 45, 50, 00};
+const unsigned int downminutes[] = {15, 15, 45, 30, 15, 55, 15, 45, 45, 45, 15, 45};
 
 const int door_btn_pin = A0;
 const int end_btn_pin = 12;
@@ -66,6 +66,7 @@ void up() {
       Serial.println("timedout");
     }
   }
+  delay(2000);
 }
 
 void down() {
@@ -83,7 +84,7 @@ void down() {
 }
 
 void zaun(bool state) {
-  digitalWrite(zaun_relais_pin, state);
+  digitalWrite(zaun_relais_pin, !state);
   zaun_state = state;
 }
 
@@ -103,26 +104,41 @@ void setup () {
   DateTime now = rtc.now();
   Serial.print(now.hour());
   Serial.println(now.minute());
-  
+
   refit_up_down_times();
 
-  if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
-    up();
-    zaun(false);
+  if ((now.hour() >= int(uptime_h)) and (now.hour() <= int(downtime_h))) {
+    if (now.hour() == int(uptime_h) or now.hour() == int(downtime_h)) {
+      if ((now.minute() <= int(uptime_m))) {
+        Serial.println("in hour up");
+        up();
+        zaun(true);
+      }
+      else {
+        Serial.println("in hour down");
+        down();
+        zaun(false);
+      }
+    }
+    else {
+      Serial.println("out hour up");
+      up();
+      zaun(true);
+    }
   }
   else {
-    up();
+    Serial.println("out hour down");
     down();
-    zaun(true);
+    zaun(false);
   }
 }
 
 void refit_up_down_times() {
   DateTime now = rtc.now();
-  uptime_h = uphours[now.month()-1];
-  uptime_m = upminutes[now.month()-1];
-  downtime_h = downhours[now.month()-1];
-  downtime_m = downminutes[now.month()-1];
+  uptime_h = uphours[now.month() - 1];
+  uptime_m = upminutes[now.month() - 1];
+  downtime_h = downhours[now.month() - 1];
+  downtime_m = downminutes[now.month() - 1];
   Serial.print(uptime_h);
   Serial.print(uptime_m);
   Serial.print(downtime_h);
@@ -133,41 +149,28 @@ void loop () {
 
   DateTime now = rtc.now();
 
-  door_btn = digitalRead(door_btn_pin);
+  door_btn = !digitalRead(door_btn_pin);
   Serial.println("loop");
 
   //---------------------------------------------------------------------------------------------------------------
 
-  if ((now.hour() >= int(uptime_h)) and (now.hour() < int(downtime_h))) {
-    if (door_btn_triggered == true) {
-      if (millis() - door_btn_triggered_time > refit_door_time) {
-        door_btn_triggered = false;
-      }
-    }
-    else {
-      if (door_state == false) {
-        up();
-        zaun(false);
-        refit_up_down_times();
-      }
-    }
-  }
-  else {
-    if (door_btn_triggered == true) {
-      if (millis() - door_btn_triggered_time > refit_door_time) {
-        door_btn_triggered = false;
-      }
-    }
-    else {
-      if (door_state == true) {
-        down();
-        zaun(true);
-        refit_up_down_times();
-      }
+  if ((now.hour() == int(uptime_h)) and (now.minute() == int(uptime_m))) {
+    if (door_state == false) {
+      Serial.println("regular up");
+      up();
+      zaun(true);
+      refit_up_down_times();
     }
   }
 
-  //-------------------------------------------------------------------------------------------------------------- -
+  if ((now.hour() == int(downtime_h)) and (now.minute() == int(downtime_m))) {
+    if (door_state == true) {
+      Serial.println("regular down");
+      down();
+      zaun(false);
+      refit_up_down_times();
+    }
+  }
 
   if (door_btn == HIGH) {
     Serial.println("door_btn triggered");
@@ -181,4 +184,8 @@ void loop () {
     door_btn_triggered_time = millis();
     delay(400);
   }
-}
+
+
+  }
+
+  //-------------------------------------------------------------------------------------------------------------- -
